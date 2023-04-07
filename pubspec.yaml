@@ -1,0 +1,15 @@
+name: dcs
+description: DCS Servise
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.2 <3.0.0'
+
+dependencies:
+  conduit: ^3.2.10
+  jaguar_jwt: ^3.0.0
+  qr: ^3.0.1
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0

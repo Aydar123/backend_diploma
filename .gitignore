@@ -1,0 +1,10 @@
+# Files and directories created by pub.
+.dart_tool/
+.packages
+database.yaml
+Dockerfile
+pubspec.lock
+docker-compose.yaml
+
+# Conventional directory for build output.
+build/
