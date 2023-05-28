@@ -1,10 +1,7 @@
-
-
 import 'dart:io';
 
 import 'package:conduit/conduit.dart';
 import 'package:dcs/models/fields.dart';
-import 'package:dcs/models/org_fields.dart';
 import 'package:dcs/models/org_to_user_data.dart';
 import 'package:dcs/models/organization.dart';
 import 'package:dcs/models/user_data.dart';
@@ -58,13 +55,14 @@ class AppClientSelectedOrg extends ResourceController {
       //final List<OrgField> listAllFields = await qGetUniqFieldsCurOrg.fetch();
 
       //По красоте выводим список полей (с названием поля!). Но результат - join таблица, а не List. Возможно это не правильно.
+      //Возращает же список! С чего вдруг не список? (17.04.23)
       final newQ = Query<Field>(managedContext)
         ..returningProperties((x) => [x.name]);
       final subNewQ =  newQ.join(set: (x) => x.orgField)
         ..where((x) => x.orgId?.id).equalTo(idOrg)
         ..returningProperties((x) => [x.orgId]);
         
-      final listAllFields = await newQ.fetch();
+      final List<Field> listAllFields = await newQ.fetch();
 
       listAllFields.removeWhere((element) => element.orgField!.isEmpty);
 
@@ -122,7 +120,7 @@ class AppClientSelectedOrg extends ResourceController {
 
   }
 
-  // 4. Видимо отдельная кнопка Save - переделать
+  // 4. Отдельная кнопка Save (не использую)
   @Operation.post()
   Future<Response> insertMtoMData(@Bind.query("orgId") int orgId, @Bind.query("userDataId") int userDataId) async {
     try{
@@ -138,18 +136,19 @@ class AppClientSelectedOrg extends ResourceController {
 
   }
 
-  // Future<Response> joinTable(){
-  //   try{
+  // 5. Поиск орагнизаций по полному назанию
+  //{Фигурные скобки} - означают, что параметр fullName не обязательный
+  /*
+  @Operation.get()
+  Future<Response> findOrgByFullName({@Bind.query("fullName") String? fullName}) async {
+    final findQuery = Query<Organization>(managedContext);
+    if (fullName != null) {
+      findQuery.where((f) => f.fullName).contains(fullName, caseSensitive: false);
+    }
+    final fOrg = await findQuery.fetch();
 
-  //   }catch(error){}
-  // }
-
-
-
-
-
-
-
-
+    return Response.ok(fOrg);
+  }
+  */
 
 }

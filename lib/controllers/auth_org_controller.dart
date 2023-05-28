@@ -5,6 +5,7 @@ import 'package:dcs/models/organization.dart';
 import 'package:dcs/models/response_model.dart';
 import 'package:dcs/utils/app_env.dart';
 import 'package:dcs/utils/app_response.dart';
+import 'package:dcs/utils/app_utils.dart';
 import 'package:jaguar_jwt/jaguar_jwt.dart';
 
 import 'package:dcs/models/user_data.dart';
@@ -121,6 +122,28 @@ class AppAuthOrgController extends ResourceController {
     tokens["refresh"] = issueJwtHS256(refreshClaimSet, key);
 
     return tokens;
+  }
+
+  @Operation.post("refresh")
+  Future<Response> refreshToken(@Bind.path("refresh") String refreshToken) async {
+
+    try{
+
+      final id = AppUtils.getIdFromToken(refreshToken);
+
+      final org = await managedContext.fetchObjectWithID<Organization>(id);
+      if (org?.refreshToken != refreshToken) {
+        return Response.unauthorized(body: AppResponseModel(message: "Token is not valid!"));
+      } 
+      else {
+        await _updateTokens(id, managedContext);
+        final org = await managedContext.fetchObjectWithID<Organization>(id);
+        return MyAppResponse.ok(body: org?.backing.contents, message: "Успешное обновление токенов!");
+      }
+    } catch(error) {
+      return MyAppResponse.serverError(error, message: "Ошибка обновления токенов!");
+    }
+
   }
 
 

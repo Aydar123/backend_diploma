@@ -100,7 +100,7 @@ class AppUniqAdditionalOrgController extends ResourceController {
       return MyAppResponse.ok(message: "Название поля успешно изменено!");
 
     }catch(error) {
-      return MyAppResponse.serverError(error, message: "upps, Error");
+      return MyAppResponse.serverError(error, message: "Ошибка изменения!");
     }
 
   }
@@ -130,7 +130,7 @@ class AppUniqAdditionalOrgController extends ResourceController {
       return MyAppResponse.ok(message: "Поле успешно удалено!");
 
     }catch(error) {
-      return MyAppResponse.serverError(error, message: "upps, Error");
+      return MyAppResponse.serverError(error, message: "Ошибка удаления!");
     }
 
   }

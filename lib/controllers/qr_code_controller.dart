@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:conduit/conduit.dart';
@@ -8,7 +7,6 @@ import 'package:dcs/models/user.dart';
 import 'package:dcs/models/user_data.dart';
 import 'package:dcs/utils/app_response.dart';
 import 'package:dcs/utils/app_utils.dart';
-import 'package:qr/qr.dart';
 
 class AppQrCodeController extends ResourceController {
 
@@ -76,55 +74,47 @@ class AppQrCodeController extends ResourceController {
   */
 
   //Все вместе - для integration controller
-  @Operation.get("userId")
-  Future<Response> findUserByID(@Bind.header(HttpHeaders.authorizationHeader) String header, @Bind.path("userId") int userId,
-                                @Bind.query("access") String tf ) async{
+  @Operation.get()
+  Future<Response> findUserByID(@Bind.header(HttpHeaders.authorizationHeader) String header,
+                                             @Bind.query("userId") String userId) async{
     try {
       final orgId = AppUtils.getIdFromHeader(header);
-      final user = await managedContext.fetchObjectWithID<User>(userId);
-      //final org = await managedContext.fetchObjectWithID<OrgToUserData>(orgId);
+      final user = await managedContext.fetchObjectWithID<User>(int.tryParse(userId));
       
       if (user == null) {
         return MyAppResponse.ok(message: "Такого пользователя не существует.");
       }
 
-      if (tf == "true") {
+      //Заполняем таблицу Access
+      final accessQ = Query<Access>(managedContext)
+        ..values.orgId?.id = orgId
+        ..values.userId?.id = int.tryParse(userId) 
+        ..values.createdAt = DateTime.now();
+      final resAccessQ = await accessQ.insert();
 
-        //Заполняем таблицу Access
-        final accessQ = Query<Access>(managedContext)
-          ..values.orgId?.id = orgId
-          ..values.userId?.id = userId
-          ..values.createdAt = DateTime.now();
-        final resAccessQ = await accessQ.insert();
+      final accessObject = await managedContext.fetchObjectWithID<Access>(resAccessQ.id);
 
-        final accessObject = await managedContext.fetchObjectWithID<Access>(resAccessQ.id);
-
-        //Формируем Join таблицу
-        final query1 = Query<UserData>(managedContext)
-          ..where((x) => x.userId?.id).equalTo(userId)
-          ..returningProperties((x) => [x.value, x.userId]);
-        final subquery1 = query1.join(set: (x) => x.orgToUserData)
-          ..where((x) => x.orgId?.id).equalTo(orgId)
-          ..returningProperties((x) => [x.orgId]);
+      //Формируем Join таблицу
+      final query1 = Query<UserData>(managedContext)
+        ..where((x) => x.userId?.id).equalTo(int.tryParse(userId))
+        ..returningProperties((x) => [x.value, x.userId]);
+      final subquery1 = query1.join(set: (x) => x.orgToUserData)
+        ..where((x) => x.orgId?.id).equalTo(orgId)
+        ..returningProperties((x) => [x.orgId]);
       
-        final res = await query1.fetch();
+      final List<UserData> res = await query1.fetch();
 
-        res.removeWhere((element) => element.orgToUserData!.isEmpty);
+      res.removeWhere((element) => element.orgToUserData!.isEmpty);
 
-        for(int i = 0; i < res.length; i++) {
-          //Заполняем таблицу AccessToUserData
-          final accessToUserDataQ = Query<AccessToUserData>(managedContext)
-            ..values.accessId?.id = accessObject?.id
-            ..values.userDataId?.id = res[i].id;
-          await accessToUserDataQ.insert();
-        }
-
-        return Response.ok(res);       
-
+      for(int i = 0; i < res.length; i++) {
+        //Заполняем таблицу AccessToUserData
+        final accessToUserDataQ = Query<AccessToUserData>(managedContext)
+          ..values.accessId?.id = accessObject?.id
+          ..values.userDataId?.id = res[i].id;
+        await accessToUserDataQ.insert();
       }
-      else {
-        return MyAppResponse.ok(message: "Пользователь запретил передачу данных.");
-      }
+
+      return Response.ok(res);       
 
     }catch(error){
       return MyAppResponse.serverError(error, message: "Ошибка!");

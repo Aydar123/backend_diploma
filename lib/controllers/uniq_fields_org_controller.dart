@@ -22,11 +22,9 @@ class AppUniqFieldsOrgController extends ResourceController {
   @Operation.get()
   Future<Response> getAllNullFields(@Bind.header(HttpHeaders.authorizationHeader) String header) async {
     try{
-      //final idOrg = AppUtils.getIdFromHeader(header);
 
       final qGetAllFields = Query<Field>(managedContext)
         ..where((x) => x.createdOrgId).isNull();
-        //..returningProperties((x) => [x.id,x.name]);
 
       final List<Field> listAllFields = await qGetAllFields.fetch();
 
@@ -64,15 +62,15 @@ class AppUniqFieldsOrgController extends ResourceController {
       //уже добавленно в БД!!!!")
       //Такая запись в системе уже сущетствует!
 
-      return MyAppResponse.ok(message: "Success");
+      return MyAppResponse.ok(message: "Выбранное поле успешно добавлено!");
 
     }catch(error){
-      return MyAppResponse.serverError(error, message: "upps, Error");
+      return MyAppResponse.serverError(error, message: "Ошибка добавления!");
     }
 
   }
 
-  //Метод, каторый по id_field должен удалить поле из таблицы [OrgFields] - пока не работает
+  //Метод, каторый по id_field должен удалить поле из таблицы [OrgFields]
   @Operation.delete("id")
   Future<Response> deleteFieldById(@Bind.header(HttpHeaders.authorizationHeader) String header,
                                @Bind.path("id") int idField) async {

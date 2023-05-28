@@ -42,12 +42,12 @@ class AppDCS extends ApplicationChannel{
   //то в этом случае мы можем принимать оператор !
   @override
   Controller get entryPoint => Router()
-  ..route("/clientAuth")
+  ..route("/clientAuth/[:refresh]")
           .link(() => AppAuthClientController(managedContext))
   ..route("/clientProfile")
           .link(() => AppTokenController())!
           .link(() => AppProfileClientController(managedContext))
-  ..route("/orgAuth").link(() => AppAuthOrgController(managedContext))
+  ..route("/orgAuth/[:refresh]").link(() => AppAuthOrgController(managedContext))
   ..route("/orgProfile")
           .link(() => AppTokenController())!
           .link(() => AppProfileOrgController(managedContext))
@@ -55,12 +55,16 @@ class AppDCS extends ApplicationChannel{
           .link(() => AppTokenController())!
           .link(() => AppUniqFieldsOrgController(managedContext))
   ..route("/additionalFieldSelection/[:id]")
+          .link(() => AppTokenController())!
           .link(() => AppUniqAdditionalOrgController(managedContext))
   ..route("/allOrgField/[:id]")
+          .link(() => AppTokenController())!
           .link(() => AppUniqAllOrgFieldsController(managedContext))
   ..route("/clientOrgSelection/[:orgId/[:fieldId]]")
+          .link(() => AppTokenController())!
           .link(() => AppClientSelectedOrg(managedContext))
   ..route("/qrCode/[:userId]")
+          .link(() => AppTokenController())!
           .link(() => AppQrCodeController(managedContext))
   ;
 

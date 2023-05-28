@@ -20,11 +20,18 @@ class AppUniqAllOrgFieldsController extends ResourceController {
     try{
       final idOrg = AppUtils.getIdFromHeader(header);
 
-      final qGetAllSelectedFields = Query<OrgField>(managedContext)
-        ..where((x) => x.orgId?.id).equalTo(idOrg);
-        // ..returningProperties((x) => [x.orgId?, x.fieldId?.name]);
+      // final qGetAllSelectedFields = Query<OrgField>(managedContext)
+      //   ..where((x) => x.orgId?.id).equalTo(idOrg);
 
-      final List<OrgField> listAllFields = await qGetAllSelectedFields.fetch();
+      final qGetAllSelectedFields = Query<Field>(managedContext)
+        ..returningProperties((x) => [x.name]);
+      final subQ = qGetAllSelectedFields.join(set: (x) => x.orgField)
+        ..where((x) => x.orgId?.id).equalTo(idOrg)
+        ..returningProperties((x) => [x.orgId]);
+
+      final List<Field> listAllFields = await qGetAllSelectedFields.fetch();
+
+      listAllFields.removeWhere((element) => element.orgField!.isEmpty);
 
       if(listAllFields.isEmpty) { return MyAppResponse.ok(message: "B случае необходимости добавьте новое поле. Пока тут пусто."); }
 
@@ -58,10 +65,10 @@ class AppUniqAllOrgFieldsController extends ResourceController {
       //уже добавленно в БД!!!!")
       //Такая запись в системе уже сущетствует!
 
-      return MyAppResponse.ok(message: "Success");
+      return MyAppResponse.ok(message: "Выбранное поле добавлено!");
 
     }catch(error){
-      return MyAppResponse.serverError(error, message: "upps, Error");
+      return MyAppResponse.serverError(error, message: "Ошибка добавления!");
     }
 
   }
@@ -84,10 +91,10 @@ class AppUniqAllOrgFieldsController extends ResourceController {
         ..where((x) => x.fieldId?.id).equalTo(idField);
       await qDeleteData.delete();
 
-      return MyAppResponse.ok(message: "Success");
+      return MyAppResponse.ok(message: "Выбранное поле удалено!");
 
     }catch(error){
-      return MyAppResponse.serverError(error, message: "upps, Error");
+      return MyAppResponse.serverError(error, message: "Ошибка удаления!");
     }
 
   }
